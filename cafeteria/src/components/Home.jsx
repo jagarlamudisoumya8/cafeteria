@@ -9,9 +9,11 @@ export default function Home({
   addItem,
   removeItem,
   placeOrder,
+  isPlacingOrder,
   viewOrders,
+  onLogout,
 }) {
-  const [canteen, setCanteen] = useState("N Block");
+  const [canteen, setCanteen] = useState("N Block canteen");
   const [category, setCategory] = useState("Tiffins");
 
   const changeCanteen = (name) => {
@@ -25,6 +27,7 @@ export default function Home({
       <Sidebar
         selected={canteen}
         setSelected={changeCanteen}
+        onLogout={onLogout}
       />
 
       {/* Main Content */}
@@ -89,6 +92,7 @@ export default function Home({
       <Cart
         cart={cart}
         placeOrder={placeOrder}
+        isPlacingOrder={isPlacingOrder}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-export default function RegisteredTokens({ orders, back }) {
+export default function RegisteredTokens({ orders, back, viewOrder, onCancel }) {
   return (
     <div className="registered-page">
       <div className="token-card">
@@ -41,8 +41,8 @@ export default function RegisteredTokens({ orders, back }) {
               </div>
 
               <div className="detail-row">
-                <span>Time</span>
-                <b>{o.time}</b>
+                <span>Canteen · Time</span>
+                <b>{o.canteenName || o.canteen || "—"} · {o.time}</b>
               </div>
 
               {/* Ordered Items */}
@@ -52,7 +52,7 @@ export default function RegisteredTokens({ orders, back }) {
                 {o.items.map((item, index) => (
                   <div key={index} className="food-item">
                     <span>{item.name}</span>
-                    <b>₹{item.price}</b>
+                    <b>{item.quantity > 1 ? `×${item.quantity} · ` : ""}₹{item.price * (item.quantity || 1)}</b>
                   </div>
                 ))}
               </div>
@@ -62,6 +62,8 @@ export default function RegisteredTokens({ orders, back }) {
                 <span>Total</span>
                 <span>₹{o.total}</span>
               </div>
+              {viewOrder && <button className="order-view-btn" onClick={() => viewOrder(o)}>View Details</button>}
+              {onCancel && o.status === "Preparing" && <button className="order-cancel-btn" onClick={() => onCancel(o._id)}>Cancel Order</button>}
             </div>
           ))
         )}
