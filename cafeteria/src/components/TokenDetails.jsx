@@ -1,4 +1,4 @@
-export default function TokenDetails({ order, newOrder }) {
+export default function TokenDetails({ order, newOrder, viewTokens }) {
   return (
     <div className="success">
       <div className="done">
@@ -28,8 +28,8 @@ export default function TokenDetails({ order, newOrder }) {
               margin: "8px 0",
             }}
           >
-            <span>{item.name}</span>
-            <b>₹{item.price}</b>
+            <span>{item.name}{item.quantity > 1 ? ` ×${item.quantity}` : ""}</span>
+            <b>₹{item.price * (item.quantity || 1)}</b>
           </div>
         ))}
 
@@ -40,6 +40,7 @@ export default function TokenDetails({ order, newOrder }) {
         <button onClick={newOrder}>
           Back to Menu
         </button>
+        {viewTokens && <button className="details-tokens-btn" onClick={viewTokens}>View Registered Tokens</button>}
       </div>
     </div>
   );

@@ -6,10 +6,7 @@ const canteens = [
   "A Block Canteen",
 ];
 
-export default function Sidebar({
-  selected,
-  setSelected,
-}) {
+export default function Sidebar({ selected, setSelected, onLogout }) {
   return (
     <div className="sidebar">
       <h2>🍽 Vignan</h2>
@@ -23,6 +20,7 @@ export default function Sidebar({
           {item}
         </button>
       ))}
+      {onLogout && <button className="logout-btn" onClick={onLogout}>Log out</button>}
     </div>
   );
 }

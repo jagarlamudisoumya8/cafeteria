@@ -85,6 +85,25 @@ button{
   background:#115e59;
 }
 
+.card .auth-toggle{
+  margin-top:12px;
+  padding:8px 4px;
+  background:transparent;
+  color:#0f766e;
+  font-size:13px;
+}
+
+.card .auth-toggle:hover{background:#f0fdfa}
+.card .auth-error{color:#b91c1c;font-size:13px;margin:4px 0 10px}
+.card .local-storage-note{font-size:12px;margin:14px 0 0;color:#94a3b8}
+.card button:disabled{opacity:.65;cursor:wait}
+.sidebar .logout-btn{margin-top:auto;background:#134e4a}
+.global-error{position:fixed;z-index:10;right:18px;bottom:18px;max-width:min(420px,calc(100vw - 36px));background:#fff1f2;color:#9f1239;padding:14px 45px 14px 16px;border:1px solid #fecdd3;border-radius:12px;box-shadow:0 8px 25px #0f172a22;font-size:14px}
+.global-error button{position:absolute;right:12px;top:8px;background:transparent;color:#9f1239;font-size:22px}
+.details-tokens-btn{margin-top:10px;background:#2563eb!important}
+.order-view-btn,.order-cancel-btn{width:100%;padding:10px;margin-top:10px;border-radius:10px;background:#2563eb;color:#fff}
+.order-cancel-btn{margin-top:7px;background:#dc2626}
+
 .tick{
   width:90px;
   height:90px;

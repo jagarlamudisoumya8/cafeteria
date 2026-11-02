@@ -1,116 +1,153 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Home from "./components/Home";
 import TokenDetails from "./components/TokenDetails";
 import RegisteredTokens from "./components/RegisteredTokens";
+import { cancelOrder, createOrder, getOrders } from "./api";
+
+function readStored(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export default function App() {
-  const [token, setToken] = useState(1);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => readStored("cafeteria_user", null));
   const [cart, setCart] = useState([]);
-
-  // Store latest order
-  const [order, setOrder] = useState(null);
-
-  // Store all orders
   const [orders, setOrders] = useState([]);
-
+  const [order, setOrder] = useState(null);
   const [showToken, setShowToken] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
-  
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [error, setError] = useState("");
+  const reg = user?.reg;
 
-  // Add item
-  const addItem = (item) => {
-    setCart([...cart, item]);
+  useEffect(() => {
+    if (!reg) {
+      return undefined;
+    }
+
+    let active = true;
+    getOrders(reg)
+      .then((savedOrders) => {
+        if (active) setOrders(savedOrders);
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [reg]);
+
+  const addItem = (item) => setCart((previous) => [...previous, item]);
+
+  const removeItem = (name, canteen) => {
+    setCart((previous) => {
+      const index = previous.findIndex((item) => item.name === name && item.canteen === canteen);
+      if (index < 0) return previous;
+      return previous.filter((_, itemIndex) => itemIndex !== index);
+    });
   };
 
-  // Remove item
-  const removeItem = (name, canteen) => {
-    const index = cart.findIndex(
-      (item) =>
-        item.name === name &&
-        item.canteen === canteen
-    );
-
-    if (index !== -1) {
-      const updated = [...cart];
-      updated.splice(index, 1);
-      setCart(updated);
+  const placeOrder = async () => {
+    if (!cart.length || isPlacingOrder) return;
+    setError("");
+    setIsPlacingOrder(true);
+    try {
+      const savedOrder = await createOrder({
+        reg: user.reg,
+        name: user.name,
+        items: cart.map(({ name, canteen }) => ({ name, canteen })),
+      });
+      setOrders((previous) => [savedOrder, ...previous]);
+      setOrder(savedOrder);
+      setShowToken(true);
+      setCart([]);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
-  // Place Order
-  const placeOrder = () => {
-    const total = cart.reduce(
-      (sum, item) => sum + item.price,
-      0
-    );
-
-    const newOrder = {
-      token: token,
-      student: user.name,
-      reg: user.reg,
-      items: cart,
-      total: total,
-      payment: "Cash",
-      status: "Preparing",
-      time: new Date().toLocaleTimeString(),
-    };
-
-    // Save latest order
-    setOrder(newOrder);
-
-    // Save all orders
-    setOrders((prev) => [...prev, newOrder]);
-
-    setCart([]);
-    setShowToken(true);
-  };
-
-  // Back to Menu
   const newOrder = () => {
     setShowToken(false);
-    setToken((prev) => prev + 1);
+    setOrder(null);
   };
 
-  // Login Page
+  const viewOrders = async () => {
+    setError("");
+    try {
+      setOrders(await getOrders(user.reg));
+      setShowToken(false);
+      setShowOrders(true);
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("cafeteria_user");
+    setUser(null);
+    setOrders([]);
+    setOrder(null);
+    setCart([]);
+    setShowToken(false);
+    setShowOrders(false);
+    setError("");
+  };
+
   if (!user) {
-    return <Login onLogin={setUser} />;
+    return <Login onLogin={(nextUser) => {
+      localStorage.setItem("cafeteria_user", JSON.stringify(nextUser));
+      setUser(nextUser);
+      setOrders([]);
+      setShowToken(false);
+    }} />;
   }
 
-  // Token Details Page
-  if (showToken) {
-    return (
-      <TokenDetails
-        order={order}
-        newOrder={newOrder}
-        viewTokens={() => {
-          setShowToken(false);
-          setShowOrders(true);
-        }}
-      />
-    );
+  const errorAlert = error && (
+    <div className="global-error" role="alert">
+      {error}
+      <button aria-label="Dismiss error" onClick={() => setError("")}>×</button>
+    </div>
+  );
+
+  if (showToken && order) {
+    return <>{errorAlert}<TokenDetails order={order} newOrder={newOrder} viewTokens={viewOrders} /></>;
   }
 
-  // Registered Tokens Page
   if (showOrders) {
     return (
-      <RegisteredTokens
-        orders={orders}
-        back={() => setShowOrders(false)}
-      />
+      <>
+        {errorAlert}
+        <RegisteredTokens
+          orders={orders}
+          back={() => setShowOrders(false)}
+          viewOrder={(savedOrder) => { setOrder(savedOrder); setShowOrders(false); setShowToken(true); }}
+          onCancel={async (id) => {
+            setError("");
+            try {
+              const updatedOrder = await cancelOrder(id, user.reg);
+              setOrders((previous) => previous.map((saved) => saved._id === id ? updatedOrder : saved));
+            } catch (requestError) {
+              setError(requestError.message);
+            }
+          }}
+        />
+      </>
     );
   }
 
-  // Home Page
   return (
-    <Home
-      user={user}
-      cart={cart}
-      addItem={addItem}
-      removeItem={removeItem}
-      placeOrder={placeOrder}
-      viewOrders={() => setShowOrders(true)}
-    />
+    <>
+      {errorAlert}
+      <Home user={user} cart={cart} addItem={addItem} removeItem={removeItem} placeOrder={placeOrder} isPlacingOrder={isPlacingOrder} viewOrders={viewOrders} onLogout={logout} />
+    </>
   );
 }

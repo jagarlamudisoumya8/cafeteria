@@ -1,16 +1,34 @@
-# React + Vite
+# Cafeteria
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A React/Vite cafeteria ordering app with a Node.js HTTP API and a persistent SQLite database.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use Node.js 22.13 or newer.
 
-## React Compiler
+```sh
+npm install
+npm run server
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+In a second terminal, start the frontend:
 
-## Expanding the Oxlint configuration
+```sh
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Vite proxies `/api` requests to the backend at `http://localhost:3001`. The SQLite database is created at `server/data/cafeteria.sqlite` and is excluded from Git. Set `PORT` to change the backend port; set `DATABASE_PATH` to store the database elsewhere.
+
+For a separately hosted frontend, set `VITE_API_URL` to the backend's public origin at build time. The API allows cross-origin requests for this deployment setup.
+
+## API
+
+- `GET /api/health` — health check
+- `POST /api/students/login` — create or update a student using `{ "reg": "...", "name": "..." }`
+- `GET /api/orders?reg=...` — list a student's orders
+- `POST /api/orders` — place an order using `{ "reg": "...", "name": "...", "items": [{ "name": "...", "canteen": "..." }] }`
+- `PATCH /api/orders/:id/cancel` — cancel a preparing order using `{ "reg": "..." }`
+
+Prices and totals are calculated by the server from its menu catalog. Order tokens are assigned transactionally and orders persist across server restarts.
+
+The current student login asks only for a registration number and name; it is a demo identity flow, not secure authentication. Use institutional authentication before deploying for real student accounts.

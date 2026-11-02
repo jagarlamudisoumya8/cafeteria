@@ -1,4 +1,4 @@
-export default function Cart({ cart, placeOrder }) {
+export default function Cart({ cart, placeOrder, isPlacingOrder }) {
   const total = cart.reduce((a, b) => a + b.price, 0);
 
   return (
@@ -16,8 +16,8 @@ export default function Cart({ cart, placeOrder }) {
 
       <h3>Total : ₹{total}</h3>
 
-      <button disabled={!cart.length} onClick={placeOrder}>
-        Place Order
+      <button disabled={!cart.length || isPlacingOrder} onClick={placeOrder}>
+        {isPlacingOrder ? "Placing Order..." : "Place Order"}
       </button>
     </div>
   );
