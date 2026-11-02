@@ -1,0 +1,13 @@
+{
+  "name": "cafeteria-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix cafeteria run dev --",
+    "dev:backend": "npm --prefix cafeteria/backend run dev",
+    "build": "npm --prefix cafeteria run build",
+    "lint": "npm --prefix cafeteria run lint",
+    "preview": "npm --prefix cafeteria run preview",
+    "predeploy": "npm --prefix cafeteria run build",
+    "deploy": "npm --prefix cafeteria --ignore-scripts run deploy"
+  }
+}
